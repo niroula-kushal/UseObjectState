@@ -1,66 +1,48 @@
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+## This repository houses the implementation of useObjectState hook.
 
-## Running on Repl.it
+useObjectState is a custom react hook developed to mimic the behavior of the old setState method while using class components.
 
-Simply hit run once and start coding. Will hot reload the web view. 
+This hook uses `useState` hook under the hood. In fact, it is just a wrapper around it to ensure that we dont have to perform destructuring operation when dealing with object state and also to ensure that we dont intruduce a data reset bug by accident; happens when we setState without specifying other values when using react hook `useState`
 
-## Running Scripts
+The implementation is simple and given below : 
+```js
 
-You can open a new shell window by hitting command+shift+S on macOS or control+shift+S (you can also access shortcuts from the `?` in the bottom right corner).
+import { useState } from "react";
 
-When in the shell you can run any of the following scripts:
+const useObjectState = (initial = {}) => {
+  if(typeof initial != "object") {
+    throw new Error("useObjectState can only be used with objects");
+  }
+  const [state, updateState] = useState(initial);
 
-### `yarn test`
+  const setState = (newStateValue) => {
+    updateState({
+      ...state,
+      ...newStateValue
+    });
+  }
 
-Launches the test runner in the interactive watch mode.<br />
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+  return [
+    state,
+    setState
+  ];
+};
 
-### `yarn build`
+export default useObjectState;
 
-Builds the app for production to the `build` folder.<br />
-It correctly bundles React in production mode and optimizes the build for the best performance.
+```
 
-The build is minified and the filenames include the hashes.<br />
-Your app is ready to be deployed!
+You can use the above hook in your react components.
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
-
-### `yarn eject`
-
-**Note: this is a one-way operation. Once you `eject`, you can’t go back!**
-
-If you aren’t satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
-
-Instead, it will copy all the configuration files and the transitive dependencies (Webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you’re on your own.
-
-You don’t have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn’t feel obligated to use this feature. However we understand that this tool wouldn’t be useful if you couldn’t customize it when you are ready for it.
-
-## Learn More
-
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
-
-To learn React, check out the [React documentation](https://reactjs.org/).
-
-### Code Splitting
-
-This section has moved here: https://facebook.github.io/create-react-app/docs/code-splitting
-
-### Analyzing the Bundle Size
-
-This section has moved here: https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size
-
-### Making a Progressive Web App
-
-This section has moved here: https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app
-
-### Advanced Configuration
-
-This section has moved here: https://facebook.github.io/create-react-app/docs/advanced-configuration
-
-### Deployment
-
-This section has moved here: https://facebook.github.io/create-react-app/docs/deployment
-
-### `yarn build` fails to minify
-
-This section has moved here: https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify
+```js
+  const [state, updateState] = useObjectState({
+    name : "Name",
+    unchangedValue : 12
+  });
+  const updateName = () => updateState({
+    name : "New updated name"
+  });
+  // updateName method just updates the name. We dont have to care about the other values in the object here.
+  // without it, we would have to use something like Object.assign({}, state, {name : "new name"}); or setState({...state, {name:"New name"}})
+  // Our custom hook uses the latter approach under the hood.
+  ```
